@@ -46,6 +46,109 @@ async function apiGet(path, staff) {
   return json.data;
 }
 
+async function apiPost(path, body = {}) {
+  const res = await fetch(API_BASE + path, {
+    method: "POST",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.success === false) {
+    const err = new Error(json.message || "Action failed");
+    err.status = res.status;
+    throw err;
+  }
+  return json.data;
+}
+
+function BookingActions({ booking, onDone, lang }) {
+  const [busy, setBusy] = React.useState(false);
+  const [err, setErr] = React.useState("");
+
+  const act = async (path, body = {}) => {
+    setBusy(true);
+    setErr("");
+    try {
+      await apiPost(path, body);
+      onDone();
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const status = booking.status?.value || booking.status;
+  const id = booking.id;
+
+  return (
+    <div className="adm__actions">
+      {err && <span className="adm__act-err">{err}</span>}
+      {status === "pending" && (
+        <>
+          <button disabled={busy} onClick={() => act(`/api/owner/bookings/${id}/confirm`)} className="btn btn--xs btn--ok">
+            {lang === "ms" ? "Sahkan" : "Confirm"}
+          </button>
+          <button disabled={busy} onClick={() => act(`/api/owner/bookings/${id}/cancel`, { reason: "Cancelled by owner" })} className="btn btn--xs btn--danger">
+            {lang === "ms" ? "Batal" : "Cancel"}
+          </button>
+        </>
+      )}
+      {status === "confirmed" && (
+        <>
+          <button disabled={busy} onClick={() => act(`/api/owner/bookings/${id}/check-in`)} className="btn btn--xs btn--ok">
+            {lang === "ms" ? "Daftar Masuk" : "Check In"}
+          </button>
+          <button disabled={busy} onClick={() => act(`/api/owner/bookings/${id}/cancel`, { reason: "Cancelled by owner" })} className="btn btn--xs btn--danger">
+            {lang === "ms" ? "Batal" : "Cancel"}
+          </button>
+        </>
+      )}
+      {status === "checked_in" && (
+        <button disabled={busy} onClick={() => act(`/api/owner/bookings/${id}/check-out`)} className="btn btn--xs btn--ok">
+          {lang === "ms" ? "Daftar Keluar" : "Check Out"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ReviewActions({ review, onDone, lang }) {
+  const [busy, setBusy] = React.useState(false);
+  const [err, setErr] = React.useState("");
+
+  const act = async (path, body = {}) => {
+    setBusy(true);
+    setErr("");
+    try {
+      await apiPost(path, body);
+      onDone();
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const status = review.status?.value || review.status;
+  const id = review.id;
+
+  if (status !== "pending") return null;
+
+  return (
+    <div className="adm__actions">
+      {err && <span className="adm__act-err">{err}</span>}
+      <button disabled={busy} onClick={() => act(`/api/owner/reviews/${id}/approve`)} className="btn btn--xs btn--ok">
+        {lang === "ms" ? "Lulus" : "Approve"}
+      </button>
+      <button disabled={busy} onClick={() => act(`/api/owner/reviews/${id}/reject`, { reason: "Does not meet community standards" })} className="btn btn--xs btn--danger">
+        {lang === "ms" ? "Tolak" : "Reject"}
+      </button>
+    </div>
+  );
+}
+
 function EmptyState({ children }) {
   return <div className="card" style={{ padding: 24 }}>{children}</div>;
 }
@@ -217,6 +320,7 @@ function AdminPage({ t, lang, staff, onSignOut }) {
                     <th>{lang === "ms" ? "Daftar keluar" : "Check-out"}</th>
                     <th>{lang === "ms" ? "Jumlah" : "Total"}</th>
                     <th>Status</th>
+                    <th>{lang === "ms" ? "Tindakan" : "Actions"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,6 +332,7 @@ function AdminPage({ t, lang, staff, onSignOut }) {
                       <td>{dateOnly(b.check_out)}</td>
                       <td>{money(b.total_price)}</td>
                       <td><span className={"badge badge--" + (b.status?.value || b.status)}>{b.status?.value || b.status}</span></td>
+                      <td><BookingActions booking={b} lang={lang} onDone={loadDashboard} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -270,6 +375,7 @@ function AdminPage({ t, lang, staff, onSignOut }) {
                       ? (lang === "ms" ? "Diluluskan" : "Approved")
                       : (lang === "ms" ? "Menunggu semakan" : "Pending review")}
                   </div>
+                  <ReviewActions review={r} lang={lang} onDone={loadDashboard} />
                 </div>
               ))}
             </div>
