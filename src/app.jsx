@@ -40,18 +40,14 @@ function App() {
     setStaffOpen(false);
   };
   const onSignOut = () => {
-    const currentStaff = window.RN_STAFF ? window.RN_STAFF.read() : null;
-    if (currentStaff?.token) {
-      fetch(`${API_BASE}/api/auth/logout`, {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-          "Authorization": `Bearer ${currentStaff.token}`,
-        },
-        credentials: "same-origin",
-      }).catch(() => {});
-    }
+    fetch(`${API_BASE}/api/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      credentials: "same-origin",
+    }).catch(() => {});
     if (window.RN_STAFF) window.RN_STAFF.clear();
     setStaff(null);
     if (route === "admin") navigate("lobby");

@@ -25,17 +25,16 @@ function normalizePage(payload) {
   return [];
 }
 
-function authHeaders(staff) {
+function authHeaders() {
   return {
     "Accept": "application/json",
     "X-Requested-With": "XMLHttpRequest",
-    ...(staff?.token ? { "Authorization": `Bearer ${staff.token}` } : {}),
   };
 }
 
 async function apiGet(path, staff) {
   const res = await fetch(API_BASE + path, {
-    headers: authHeaders(staff),
+    headers: authHeaders(),
     credentials: "same-origin",
   });
   const json = await res.json().catch(() => ({}));

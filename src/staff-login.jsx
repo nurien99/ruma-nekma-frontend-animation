@@ -18,7 +18,7 @@ window.RN_STAFF = {
       const raw = localStorage.getItem(STAFF_KEY);
       if (!raw) return null;
       const v = JSON.parse(raw);
-      return v && v.email && v.token ? v : null;
+      return v && v.email ? v : null;
     } catch (e) {
       return null;
     }
@@ -91,10 +91,9 @@ function StaffLoginModal({ open, onClose, onAuth, t }) {
       }
 
       const user = json.data?.user;
-      const token = json.data?.token;
       const role = roleValue(user?.role);
 
-      if (!user || !token || !ALLOWED_ROLES.has(role)) {
+      if (!user || !ALLOWED_ROLES.has(role)) {
         throw new Error(t("staff_denied"));
       }
 
@@ -103,7 +102,6 @@ function StaffLoginModal({ open, onClose, onAuth, t }) {
         email: user.email,
         name: user.name || user.email,
         role,
-        token,
         at: Date.now(),
       };
 
