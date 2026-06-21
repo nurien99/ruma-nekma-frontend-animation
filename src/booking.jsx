@@ -113,6 +113,8 @@ function BookingPage({ t, lang }) {
   const [paying, setPaying] = React.useState(false);
   const [guest, setGuest] = React.useState({ name: "", email: "", phone: "", notes: "" });
   const [error, setError] = React.useState("");
+  const [pricing, setPricing] = React.useState(null);
+  const [pricingLoading, setPricingLoading] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -153,6 +155,25 @@ function BookingPage({ t, lang }) {
     };
   }, []);
 
+  React.useEffect(() => {
+    if (!selectStart || !selectEnd) {
+      setPricing(null);
+      return;
+    }
+    let cancelled = false;
+    setPricingLoading(true);
+    fetch(`${API_BASE}/api/rooms/price-breakdown?check_in=${fmt(selectStart)}&check_out=${fmt(selectEnd)}`, {
+      headers: { "Accept": "application/json" },
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (!cancelled && json.success) setPricing(json.data);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setPricingLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectStart, selectEnd]);
+
   const rangeHasConflict = (start, end) => {
     for (let d = new Date(start); d < end; d = addDays(d, 1)) {
       if (availability[fmt(d)]) return true;
@@ -182,10 +203,10 @@ function BookingPage({ t, lang }) {
   };
 
   const nights = selectStart && selectEnd ? nightsBetween(selectStart, selectEnd) : 0;
-  const rate = 380;
-  const subtotal = nights * rate;
-  const cleaning = nights ? 80 : 0;
-  const total = subtotal + cleaning;
+  const subtotal = pricing?.pricing?.subtotal ?? 0;
+  const cleaning = pricing?.pricing?.cleaning_fee ?? 0;
+  const total = pricing?.pricing?.total_price ?? 0;
+  const avgRate = pricing?.pricing?.average_price_per_night ?? null;
 
   const pay = async () => {
     if (!nights || paying) return;
@@ -340,30 +361,50 @@ function BookingPage({ t, lang }) {
             </div>
 
             <div className="book__lines">
-              <div className="book__line">
-                <span>RM {rate} {t("book_per_night")} x {lang === "ms" ? RN_I18N.book_nights_ms(nights) : RN_I18N.book_nights_en(nights)}</span>
-                <strong>RM {subtotal.toFixed(2)}</strong>
-              </div>
-              <div className="book__line">
-                <span>{t("book_cleaning")}</span>
-                <strong>RM {cleaning.toFixed(2)}</strong>
-              </div>
-              <div className="book__line book__line--total">
-                <span>{t("book_total")}</span>
-                <strong>RM {total.toFixed(2)}</strong>
-              </div>
+              {pricingLoading && (
+                <div className="book__line book__line--loading">
+                  <span>{lang === "ms" ? "Mengira harga..." : "Calculating price..."}</span>
+                </div>
+              )}
+              {!pricingLoading && nights > 0 && (
+                <>
+                  <div className="book__line">
+                    <span>
+                      {avgRate ? `RM ${Number(avgRate).toFixed(2)}` : "—"} {t("book_per_night")} x {lang === "ms" ? RN_I18N.book_nights_ms(nights) : RN_I18N.book_nights_en(nights)}
+                    </span>
+                    <strong>{pricing ? `RM ${Number(subtotal).toFixed(2)}` : "—"}</strong>
+                  </div>
+                  {cleaning > 0 && (
+                    <div className="book__line">
+                      <span>{t("book_cleaning")}</span>
+                      <strong>RM {Number(cleaning).toFixed(2)}</strong>
+                    </div>
+                  )}
+                  <div className="book__line book__line--total">
+                    <span>{t("book_total")}</span>
+                    <strong>{pricing ? `RM ${Number(total).toFixed(2)}` : "—"}</strong>
+                  </div>
+                </>
+              )}
+              {!pricingLoading && nights === 0 && (
+                <div className="book__line">
+                  <span>{lang === "ms" ? "Pilih tarikh untuk lihat harga" : "Select dates to see pricing"}</span>
+                </div>
+              )}
             </div>
 
             <button
               className="btn btn--primary btn--xl"
-              disabled={!availabilityLoaded || !nights || paying}
+              disabled={!availabilityLoaded || !nights || paying || pricingLoading || !pricing}
               onClick={pay}
             >
               {paying
                 ? (lang === "ms" ? "Mengalihkan ke ToyyibPay..." : "Redirecting to ToyyibPay...")
-                : nights
-                  ? t("book_pay")
-                  : (lang === "ms" ? "Pilih tarikh dahulu" : "Select dates first")}
+                : pricingLoading
+                  ? (lang === "ms" ? "Mengira harga..." : "Calculating price...")
+                  : nights
+                    ? t("book_pay")
+                    : (lang === "ms" ? "Pilih tarikh dahulu" : "Select dates first")}
             </button>
             {error && <div className="staff-err">{error}</div>}
             <div className="book__trust">
