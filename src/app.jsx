@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client';
 import './app.css';
 
 import { RN_T } from './i18n';
-import { API_BASE } from './config';
+import { API_BASE, TWEAKS_ENABLED } from './config';
 import './image-slot';
 
 import { useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSlider, TweakToggle, TweakRadio, TweakSelect } from './tweaks-panel';
@@ -157,8 +157,8 @@ function App() {
         )}
       </main>
 
-      {/* Tweaks panel */}
-      <TweaksPanel title="Tweaks">
+      {/* Tweaks panel — dev only */}
+      {TWEAKS_ENABLED && <TweaksPanel title="Tweaks">
         <TweakSection label="Door style">
           <TweakRadio
             label="Variant"
@@ -206,7 +206,7 @@ function App() {
             onChange={(v) => setTweak("motion", v)}
           />
         </TweakSection>
-      </TweaksPanel>
+      </TweaksPanel>}
     </div>
   );
 }
