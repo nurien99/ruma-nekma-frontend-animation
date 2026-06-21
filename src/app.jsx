@@ -1,6 +1,31 @@
 // Main App — routing + Tweaks
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
+
+const ROUTE_PATHS = {
+  landing: '/',
+  lobby: '/',
+  info: '/info',
+  facilities: '/facilities',
+  reviews: '/reviews',
+  booking: '/booking',
+  faq: '/faq',
+  admin: '/admin',
+};
+
+function pathToRoute(path) {
+  const clean = path.replace(/\/$/, '') || '/';
+  const map = {
+    '/': 'lobby',
+    '/info': 'info',
+    '/facilities': 'facilities',
+    '/reviews': 'reviews',
+    '/booking': 'booking',
+    '/faq': 'faq',
+    '/admin': 'admin',
+  };
+  return map[clean] ?? 'lobby';
+}
 import './app.css';
 
 import { RN_T } from './i18n';
@@ -29,7 +54,11 @@ function App() {
   }/*EDITMODE-END*/);
 
   const [lang, setLang] = useState("ms");
-  const [route, setRoute] = useState("landing");
+  const [route, setRoute] = useState(() => {
+    const path = window.location.pathname;
+    // Root path → show landing splash on first load; deep links go directly to their page
+    return path === '/' ? 'landing' : pathToRoute(path);
+  });
   const [seoOpen, setSeoOpen] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const [staff, setStaff] = useState(() => (window.RN_STAFF ? window.RN_STAFF.read() : null));
@@ -77,14 +106,16 @@ function App() {
     r.style.setProperty("--rn-text", tw.wall === "dark" ? "#f3ead7" : "oklch(0.18 0.02 250)");
   }, [tw.wall, tw.accent]);
 
-  const navigate = (r) => {
+  const navigate = useCallback((r) => {
     if (r === route) return;
+    const path = ROUTE_PATHS[r] ?? '/';
+    window.history.pushState({ route: r }, '', path);
     setTransitioning(true);
     setTimeout(() => {
       setRoute(r);
       setTransitioning(false);
     }, 200);
-  };
+  }, [route]);
 
   const goHome = () => navigate("landing");
   const enterFromLanding = () => navigate("lobby");
@@ -95,6 +126,21 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = lang === "ms" ? "ms-MY" : "en-MY";
   }, [lang]);
+
+  // Seed initial history state so the first popstate has a state object
+  useEffect(() => {
+    window.history.replaceState({ route }, '', ROUTE_PATHS[route] ?? '/');
+  }, []);
+
+  // Browser back/forward
+  useEffect(() => {
+    const onPop = (e) => {
+      const r = e.state?.route ?? pathToRoute(window.location.pathname);
+      setRoute(r);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   let body = null;
   if (route === "landing") {
