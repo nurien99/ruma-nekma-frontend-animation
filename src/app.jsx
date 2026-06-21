@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import './app.css';
 
 import { RN_T } from './i18n';
+import { API_BASE } from './config';
 import './image-slot';
 
 import { useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSlider, TweakToggle, TweakRadio, TweakSelect } from './tweaks-panel';
@@ -41,7 +42,7 @@ function App() {
   const onSignOut = () => {
     const currentStaff = window.RN_STAFF ? window.RN_STAFF.read() : null;
     if (currentStaff?.token) {
-      fetch("/api/auth/logout", {
+      fetch(`${API_BASE}/api/auth/logout`, {
         method: "POST",
         headers: {
           "Accept": "application/json",

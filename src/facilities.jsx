@@ -1,6 +1,7 @@
 // Facilities page - grid of amenities + photo slots
 import React, { useEffect, useState } from 'react';
 import { PageEnter } from './door';
+import { API_BASE } from './config';
 
 function normalizeGallery(data) {
   const facilities = Array.isArray(data?.data) ? data.data : [];
@@ -60,7 +61,7 @@ function FacilitiesPage({ t, lang }) {
     const galleryController = new AbortController();
     const detailsController = new AbortController();
 
-    fetch("/api/facilities/gallery", {
+    fetch(`${API_BASE}/api/facilities/gallery`, {
       headers: { Accept: "application/json" },
       signal: galleryController.signal,
     })
@@ -73,7 +74,7 @@ function FacilitiesPage({ t, lang }) {
         if (error.name !== "AbortError") setGalleryImages([]);
       });
 
-    fetch("/api/facilities/details", {
+    fetch(`${API_BASE}/api/facilities/details`, {
       headers: { Accept: "application/json" },
       signal: detailsController.signal,
     })

@@ -1,6 +1,7 @@
 // Admin / Owner dashboard backed by Laravel API.
 import React from 'react';
 import { PageEnter } from './door';
+import { API_BASE } from './config';
 
 function roleLabel(role, lang) {
   if (role === "admin") return lang === "ms" ? "Pentadbir" : "Admin";
@@ -33,7 +34,7 @@ function authHeaders(staff) {
 }
 
 async function apiGet(path, staff) {
-  const res = await fetch(path, {
+  const res = await fetch(API_BASE + path, {
     headers: authHeaders(staff),
     credentials: "same-origin",
   });

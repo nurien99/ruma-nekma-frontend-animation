@@ -1,5 +1,6 @@
 // Staff login: production auth via Laravel Sanctum.
 import React from 'react';
+import { API_BASE } from './config';
 
 const STAFF_KEY = "rn_staff_auth_v1";
 const ALLOWED_ROLES = new Set(["owner", "admin"]);
@@ -70,7 +71,7 @@ function StaffLoginModal({ open, onClose, onAuth, t }) {
     setBusy(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Accept": "application/json",

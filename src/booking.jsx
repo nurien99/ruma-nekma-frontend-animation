@@ -2,6 +2,7 @@
 import React from 'react';
 import { PageEnter } from './door';
 import { RN_I18N } from './i18n';
+import { API_BASE } from './config';
 
 const TODAY = (() => {
   const d = new Date();
@@ -118,7 +119,7 @@ function BookingPage({ t, lang }) {
 
     const loadAvailability = async () => {
       try {
-        const res = await fetch(`/api/bookings/availability?start=${fmt(monthOne)}&end=${fmt(calendarEnd)}`, {
+        const res = await fetch(`${API_BASE}/api/bookings/availability?start=${fmt(monthOne)}&end=${fmt(calendarEnd)}`, {
           headers: { "Accept": "application/json" },
         });
         const json = await res.json();
@@ -209,7 +210,7 @@ function BookingPage({ t, lang }) {
     setError("");
 
     try {
-      const bookingRes = await fetch("/api/bookings/guest", {
+      const bookingRes = await fetch(`${API_BASE}/api/bookings/guest`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
@@ -228,7 +229,7 @@ function BookingPage({ t, lang }) {
         throw new Error(bookingJson.message || "Booking failed");
       }
 
-      const paymentRes = await fetch("/api/payments/create-guest", {
+      const paymentRes = await fetch(`${API_BASE}/api/payments/create-guest`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({

@@ -2,6 +2,7 @@
 import React from 'react';
 import { PageEnter } from './door';
 import { RN_I18N } from './i18n';
+import { API_BASE } from './config';
 
 const styles = `
 .rev__media {
@@ -252,8 +253,8 @@ function ReviewsPage({ t, lang }) {
 
     // Fetch own reviews and Google reviews in parallel
     Promise.all([
-      fetch("/api/reviews").then((res) => res.ok ? res.json() : null),
-      fetch("/api/reviews/google").then((res) => res.ok ? res.json() : null),
+      fetch(`${API_BASE}/api/reviews`).then((res) => res.ok ? res.json() : null),
+      fetch(`${API_BASE}/api/reviews/google`).then((res) => res.ok ? res.json() : null),
     ]).then(([ownJson, googleJson]) => {
       const ownReviews = [];
       const googleReviews = [];
@@ -398,7 +399,7 @@ function ReviewsPage({ t, lang }) {
         formData.append('review_video', videoFile);
       }
 
-      const res = await fetch("/api/reviews/guest", {
+      const res = await fetch(`${API_BASE}/api/reviews/guest`, {
         method: "POST",
         headers: { "Accept": "application/json" },
         // Do NOT set Content-Type — browser sets multipart boundary automatically
