@@ -1,6 +1,7 @@
 // Reviews page — list, ratings, owner reply, submit form
 import React from 'react';
 import { PageEnter } from './door';
+import { useDialogA11y } from './a11y';
 import { RN_I18N } from './i18n';
 import { API_BASE } from './config';
 
@@ -169,7 +170,7 @@ const styles = `
 
 function Stars({ n, size = 14 }) {
   return (
-    <span className="stars" style={{ fontSize: size }}>
+    <span className="stars" style={{ fontSize: size }} role="img" aria-label={`${n} / 5`}>
       {[1, 2, 3, 4, 5].map((i) => (
         <span key={i} className={i <= n ? "stars__on" : "stars__off"}>★</span>
       ))}
@@ -178,21 +179,37 @@ function Stars({ n, size = 14 }) {
 }
 
 function Lightbox({ src, onClose }) {
+  const ref = useDialogA11y(!!src, onClose);
   if (!src) return null;
   return (
-    <div className="rev__lightbox" onClick={onClose}>
+    <div
+      className="rev__lightbox"
+      ref={ref}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Review image"
+      tabIndex={-1}
+      onClick={onClose}
+    >
       <img src={src} alt="Review image full size" onClick={(e) => e.stopPropagation()} />
     </div>
   );
 }
 
-function ReviewMedia({ images, videoUrl }) {
+function ReviewMedia({ images, videoUrl, lang }) {
   const [lightboxSrc, setLightboxSrc] = React.useState(null);
 
   const hasImages = Array.isArray(images) && images.length > 0;
   const hasVideo = !!videoUrl;
 
   if (!hasImages && !hasVideo) return null;
+
+  const openFromKeyboard = (src) => (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setLightboxSrc(src);
+    }
+  };
 
   return (
     <>
@@ -202,15 +219,24 @@ function ReviewMedia({ images, videoUrl }) {
             key={i}
             src={src}
             alt={`Review photo ${i + 1}`}
+            role="button"
+            tabIndex={0}
+            aria-label={`${lang === "ms" ? "Lihat gambar" : "View photo"} ${i + 1}`}
             onClick={() => setLightboxSrc(src)}
+            onKeyDown={openFromKeyboard(src)}
           />
         ))}
         {hasImages && images.length > 3 && (
-          <div style={{
-            width: 80, height: 80, borderRadius: 8,
-            background: '#eee', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: 14, color: '#555', cursor: 'pointer'
-          }} onClick={() => setLightboxSrc(images[3])}>
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label={`${lang === "ms" ? "Lihat" : "View"} ${images.length - 3} ${lang === "ms" ? "gambar lagi" : "more photos"}`}
+            onKeyDown={openFromKeyboard(images[3])}
+            style={{
+              width: 80, height: 80, borderRadius: 8,
+              background: '#eee', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', fontSize: 14, color: '#555', cursor: 'pointer'
+            }} onClick={() => setLightboxSrc(images[3])}>
             +{images.length - 3}
           </div>
         )}
@@ -467,13 +493,16 @@ function ReviewsPage({ t, lang }) {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
             </label>
-            <label>
-              <span>{t("rev_stars")}</span>
+            <div className="rev__stars-group" role="radiogroup" aria-labelledby="rev-stars-lbl">
+              <span id="rev-stars-lbl">{t("rev_stars")}</span>
               <div className="rev__starpick">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     type="button"
                     key={n}
+                    role="radio"
+                    aria-checked={form.stars === n}
+                    aria-label={lang === "ms" ? `${n} bintang` : `${n} stars`}
                     className={n <= form.stars ? "is-on" : ""}
                     onClick={() => setForm({ ...form, stars: n })}
                   >
@@ -481,7 +510,7 @@ function ReviewsPage({ t, lang }) {
                   </button>
                 ))}
               </div>
-            </label>
+            </div>
             <label>
               <span>{t("rev_text")}</span>
               <textarea
@@ -522,6 +551,7 @@ function ReviewsPage({ t, lang }) {
                           className="rev__preview-remove"
                           onClick={() => removeImage(i)}
                           title="Remove"
+                          aria-label={`${lang === "ms" ? "Buang gambar" : "Remove photo"} ${i + 1}`}
                         >
                           ×
                         </button>
@@ -571,11 +601,11 @@ function ReviewsPage({ t, lang }) {
               )}
             </div>
 
-            {fileError && <div className="staff-err">{fileError}</div>}
+            {fileError && <div className="staff-err" role="alert">{fileError}</div>}
 
             <button type="submit" className="btn btn--primary">{t("rev_submit")}</button>
-            {error && <div className="staff-err">{error}</div>}
-            {submitted && <div className="rev__thanks">{t("rev_thanks")}</div>}
+            {error && <div className="staff-err" role="alert">{error}</div>}
+            {submitted && <div className="rev__thanks" role="status">{t("rev_thanks")}</div>}
           </form>
 
           {/* Reviews list with pagination */}
@@ -600,7 +630,7 @@ function ReviewsPage({ t, lang }) {
                       style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
                     />
                   ) : (
-                    <div className="rev__avatar">{(r.name || "?").split(" ").map((p) => p[0]).join("").slice(0, 2)}</div>
+                    <div className="rev__avatar" aria-hidden="true">{(r.name || "?").split(" ").map((p) => p[0]).join("").slice(0, 2)}</div>
                   )}
                   <div>
                     <div className="rev__name">
@@ -612,7 +642,7 @@ function ReviewsPage({ t, lang }) {
                         r.name || "Tetamu"
                       )}
                       {r.source === 'google' && (
-                        <span className="rev__google-badge" title="Google Review">G</span>
+                        <span className="rev__google-badge" role="img" aria-label="Google Review" title="Google Review">G</span>
                       )}
                       {r.pending && (
                         <span className="rev__pendingtag">{lang === "ms" ? "menunggu pengesahan" : "pending"}</span>
@@ -623,7 +653,7 @@ function ReviewsPage({ t, lang }) {
                   <Stars n={r.stars} size={14} />
                 </div>
                 <p className="rev__text">{lang === "ms" ? r.ms : r.en}</p>
-                <ReviewMedia images={r.images} videoUrl={r.video} />
+                <ReviewMedia images={r.images} videoUrl={r.video} lang={lang} />
                 {r.reply && (
                   <div className="rev__reply">
                     <div className="rev__replyhead">↳ {t("rev_owner_replied")}</div>
