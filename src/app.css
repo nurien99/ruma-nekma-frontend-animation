@@ -448,6 +448,13 @@ code { font-family: var(--font-mono); }
 .btn--ghost:hover { background: var(--rn-line-soft); }
 .btn--xl { padding: 16px 28px; font-size: 15px; width: 100%; }
 .btn--sm { padding: 8px 14px; font-size: 12px; }
+.btn--xs { padding: 5px 11px; font-size: 11px; border-radius: 8px; }
+.btn--ok { background: oklch(0.55 0.15 145); color: #fff; }
+.btn--ok:hover:not(:disabled) { background: oklch(0.49 0.15 145); }
+.btn--ok:disabled { opacity: .5; cursor: not-allowed; }
+.btn--danger { background: oklch(0.55 0.19 25); color: #fff; }
+.btn--danger:hover:not(:disabled) { background: oklch(0.49 0.19 25); }
+.btn--danger:disabled { opacity: .5; cursor: not-allowed; }
 
 .kicker {
   font-family: var(--font-mono);
@@ -1314,6 +1321,8 @@ code { font-family: var(--font-mono); }
 .adm__table th, .adm__table td { padding: 14px 18px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--rn-line); }
 .adm__table th { font-family: var(--font-mono); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--rn-text-soft); background: var(--rn-line-soft); }
 .adm__table code { font-size: 11px; background: var(--rn-line-soft); padding: 2px 6px; border-radius: 4px; }
+.adm__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.adm__act-err { font-size: 11px; color: oklch(0.55 0.19 25); }
 .chan { font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; padding: 3px 8px; border-radius: 100px; text-transform: uppercase; }
 .chan--direct { background: oklch(0.94 0.05 240); color: oklch(0.40 0.14 240); }
 .chan--booking\.com { background: oklch(0.96 0.04 25); color: oklch(0.45 0.14 25); }
@@ -1338,11 +1347,17 @@ code { font-family: var(--font-mono); }
 .adm__caldate em {
   position: absolute;
   bottom: 4px;
+  left: 2px;
+  right: 2px;
   font-family: var(--font-mono);
   font-style: normal;
   font-size: 8px;
   letter-spacing: .1em;
   text-transform: uppercase;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .adm__caldate--external { background: oklch(0.94 0.05 25); color: oklch(0.40 0.14 25); border-color: oklch(0.85 0.08 25); }
 .adm__caldate--airbnb { background: oklch(0.95 0.06 0); color: oklch(0.40 0.16 0); border-color: oklch(0.85 0.10 0); }
@@ -1505,6 +1520,8 @@ image-slot {
   .adm__tabs { padding: 3px; }
   .adm__tabs button { padding: 7px 10px; font-size: 11px; }
   .adm__refresh { width: 32px; height: 32px; font-size: 16px; }
+  .adm__table { padding: 0; }
+  .adm__table table { min-width: 660px; }
   .adm__table th, .adm__table td { padding: 10px 12px; font-size: 12px; }
   .adm__cal { gap: 2px; }
   .adm__caldate { font-size: 11px; }
