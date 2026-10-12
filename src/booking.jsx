@@ -15,6 +15,10 @@ const MONTH_NAMES_MS = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Ju
 const DAY_LABELS_EN = ["S", "M", "T", "W", "T", "F", "S"];
 const DAY_LABELS_MS = ["A", "I", "S", "R", "K", "J", "S"];
 
+// Booked/unavailable statuses worded for the calendar day aria-label
+const STATUS_EN = { booked: "booked", external: "booked externally", blocked: "unavailable" };
+const STATUS_MS = { booked: "telah ditempah", external: "ditempah di luar", blocked: "tidak tersedia" };
+
 const fmt = (d) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -60,7 +64,7 @@ function MonthGrid({ month, year, lang, availability, availabilityLoaded, select
       <div className="cal__head">
         <div className="cal__month">{(lang === "ms" ? MONTH_NAMES_MS : MONTH_NAMES_EN)[month]} {year}</div>
       </div>
-      <div className="cal__weekdays">
+      <div className="cal__weekdays" aria-hidden="true">
         {(lang === "ms" ? DAY_LABELS_MS : DAY_LABELS_EN).map((d, i) => <span key={i}>{d}</span>)}
       </div>
       <div className="cal__grid">
@@ -81,6 +85,12 @@ function MonthGrid({ month, year, lang, availability, availabilityLoaded, select
           if (isStart) cls.push("cal__cell--start");
           if (isEnd) cls.push("cal__cell--end");
 
+          const statusText =
+            isPast ? (lang === "ms" ? "tarikh lalu" : "past date") :
+            !availabilityLoaded ? (lang === "ms" ? "memuatkan" : "loading") :
+            status ? (lang === "ms" ? STATUS_MS[status] : STATUS_EN[status]) || (lang === "ms" ? "tidak tersedia" : "unavailable") :
+            (lang === "ms" ? "tersedia" : "available");
+
           return (
             <button
               key={i}
@@ -88,7 +98,7 @@ function MonthGrid({ month, year, lang, availability, availabilityLoaded, select
               className={cls.join(" ")}
               disabled={isPast || !availabilityLoaded || !!status}
               onClick={() => onPick(d)}
-              aria-label={displayDate(d, lang)}
+              aria-label={`${displayDate(d, lang)}, ${statusText}`}
             >
               <span className="cal__num">{d.getDate()}</span>
               {status && <span className="cal__dot" />}
@@ -283,10 +293,10 @@ function BookingPage({ t, lang }) {
         <div className="book__grid">
           <div className="book__cal card">
             <div className="cal__legend">
-              <span><span className="dot dot--avail" />{t("book_legend_avail")}</span>
-              <span><span className="dot dot--direct" />{t("book_legend_booked")}</span>
-              <span><span className="dot dot--external" />{t("book_legend_external")}</span>
-              <span><span className="dot dot--blocked" />{t("book_legend_blocked")}</span>
+              <span><span className="dot dot--avail" aria-hidden="true" />{t("book_legend_avail")}</span>
+              <span><span className="dot dot--direct" aria-hidden="true" />{t("book_legend_booked")}</span>
+              <span><span className="dot dot--external" aria-hidden="true" />{t("book_legend_external")}</span>
+              <span><span className="dot dot--blocked" aria-hidden="true" />{t("book_legend_blocked")}</span>
             </div>
             <div className="book__months">
               <MonthGrid month={monthOne.getMonth()} year={monthOne.getFullYear()} lang={lang} availability={availability} availabilityLoaded={availabilityLoaded} selectStart={selectStart} selectEnd={selectEnd} onPick={pick} />
@@ -301,21 +311,35 @@ function BookingPage({ t, lang }) {
                 <span>{t("book_checkin")}</span>
                 <strong>{displayDate(selectStart, lang)}</strong>
               </div>
-              <div className="book__arrow">-&gt;</div>
+              <div className="book__arrow" aria-hidden="true">-&gt;</div>
               <div>
                 <span>{t("book_checkout")}</span>
                 <strong>{displayDate(selectEnd, lang)}</strong>
               </div>
             </div>
 
-            <label className="book__guests">
-              <span>{t("book_guests")}</span>
+            <div className="book__guests" role="group" aria-labelledby="book-guests-lbl">
+              <span id="book-guests-lbl">{t("book_guests")}</span>
               <div className="qty">
-                <button type="button" onClick={() => setGuests(Math.max(1, guests - 1))}>-</button>
-                <span>{guests}</span>
-                <button type="button" onClick={() => setGuests(Math.min(8, guests + 1))}>+</button>
+                <button
+                  type="button"
+                  onClick={() => setGuests(Math.max(1, guests - 1))}
+                  disabled={guests <= 1}
+                  aria-label={lang === "ms" ? "Kurangkan tetamu" : "Decrease guests"}
+                >
+                  -
+                </button>
+                <span aria-live="polite" aria-atomic="true">{guests}</span>
+                <button
+                  type="button"
+                  onClick={() => setGuests(Math.min(8, guests + 1))}
+                  disabled={guests >= 8}
+                  aria-label={lang === "ms" ? "Tambah tetamu" : "Increase guests"}
+                >
+                  +
+                </button>
               </div>
-            </label>
+            </div>
 
             <div className="book__section-title">{lang === "ms" ? "Maklumat tetamu" : "Guest details"}</div>
             <div className="book__form">
@@ -362,7 +386,7 @@ function BookingPage({ t, lang }) {
 
             <div className="book__lines">
               {pricingLoading && (
-                <div className="book__line book__line--loading">
+                <div className="book__line book__line--loading" role="status">
                   <span>{lang === "ms" ? "Mengira harga..." : "Calculating price..."}</span>
                 </div>
               )}
@@ -396,6 +420,7 @@ function BookingPage({ t, lang }) {
             <button
               className="btn btn--primary btn--xl"
               disabled={!availabilityLoaded || !nights || paying || pricingLoading || !pricing}
+              aria-busy={paying}
               onClick={pay}
             >
               {paying
@@ -406,7 +431,7 @@ function BookingPage({ t, lang }) {
                     ? t("book_pay")
                     : (lang === "ms" ? "Pilih tarikh dahulu" : "Select dates first")}
             </button>
-            {error && <div className="staff-err">{error}</div>}
+            {error && <div className="staff-err" role="alert">{error}</div>}
             <div className="book__trust">
               <span>SSL - ToyyibPay - FPX</span>
               <span>{lang === "ms" ? "Kalendar disemak sebelum bayaran" : "Calendar checked before payment"}</span>
