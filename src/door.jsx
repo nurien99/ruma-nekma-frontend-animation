@@ -70,6 +70,7 @@ function Door({
   peekColor = "var(--rn-peek)",
   motion = 1,
   disabled = false,
+  ariaLabel,
 }) {
   const dims =
     size === "hero" ? { w: 280, h: 480 } :
@@ -77,11 +78,25 @@ function Door({
     { w: 200, h: 340 };
 
   const swing = open ? -78 * motion : 0;
+  const interactive = typeof onClick === "function";
+  const name = ariaLabel || [sublabel, label].filter(Boolean).join(", ") || number;
+  const enabled = interactive && !disabled;
+  const onKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      onClick();
+    }
+  };
   return (
     <div
       className={"door door--" + size + (open ? " door--open" : "") + (disabled ? " door--disabled" : "")}
       style={{ width: dims.w, height: dims.h }}
-      onClick={disabled ? undefined : onClick}
+      role={interactive ? "button" : undefined}
+      tabIndex={enabled ? 0 : undefined}
+      aria-disabled={interactive && disabled ? true : undefined}
+      aria-label={interactive ? name : undefined}
+      onClick={enabled ? onClick : undefined}
+      onKeyDown={enabled ? onKeyDown : undefined}
     >
       {/* Doorway / cavity revealed when open */}
       <div className="door__cavity" style={{ background: peekColor }}>

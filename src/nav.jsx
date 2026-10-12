@@ -1,6 +1,7 @@
 // Top nav + bilingual toggle + breadcrumb key tag
-import React, { useState } from 'react';
+import React from 'react';
 import { KeyTag } from './door';
+import { useDialogA11y } from './a11y';
 
 function TopNav({ lang, setLang, route, goHome, seoOpen, setSeoOpen, t }) {
   const crumbMap = {
@@ -17,15 +18,15 @@ function TopNav({ lang, setLang, route, goHome, seoOpen, setSeoOpen, t }) {
 
   return (
     <header className="topnav">
-      <div className="topnav__brand" onClick={goHome}>
+      <button type="button" className="topnav__brand" onClick={goHome} aria-label={t("brand")}>
         <div className="logo">
-          <img src="/logo.jpeg" alt="Ruma Nekma" className="logo__img" />
+          <img src="/logo.jpeg" alt="" className="logo__img" />
           <div className="logo__wordmark">
             <div className="logo__word">RUMA NEKMA</div>
             <div className="logo__sub">MELAKA · HOMESTAY</div>
           </div>
         </div>
-      </div>
+      </button>
 
       <div className="topnav__crumb">
         <KeyTag number={crumb.num} label={crumb.label} size={0.55} />
@@ -36,19 +37,25 @@ function TopNav({ lang, setLang, route, goHome, seoOpen, setSeoOpen, t }) {
           className="seo-pill"
           onClick={() => setSeoOpen(!seoOpen)}
           title="SEO / GEO / AEO"
+          aria-expanded={seoOpen}
+          aria-controls="seo-drawer"
         >
-          <span className="seo-pill__dot" />
+          <span className="seo-pill__dot" aria-hidden="true" />
           <span className="seo-pill__txt">SEO 98 · AEO · GEO</span>
         </button>
-        <div className="lang-toggle" role="tablist">
+        <div className="lang-toggle" role="group" aria-label={lang === "ms" ? "Bahasa" : "Language"}>
           <button
+            type="button"
             className={lang === "ms" ? "is-on" : ""}
+            aria-pressed={lang === "ms"}
             onClick={() => setLang("ms")}
           >
             BM
           </button>
           <button
+            type="button"
             className={lang === "en" ? "is-on" : ""}
+            aria-pressed={lang === "en"}
             onClick={() => setLang("en")}
           >
             EN
@@ -61,11 +68,21 @@ function TopNav({ lang, setLang, route, goHome, seoOpen, setSeoOpen, t }) {
 
 // SEO/AEO/GEO drawer — visible chrome the user wanted to "show"
 function SeoDrawer({ open, onClose, t }) {
+  const ref = useDialogA11y(open, onClose);
   return (
-    <div className={"seodrawer" + (open ? " is-open" : "")}>
+    <div
+      id="seo-drawer"
+      ref={ref}
+      className={"seodrawer" + (open ? " is-open" : "")}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="seo-drawer-title"
+      aria-hidden={!open}
+      inert={open ? undefined : ""}
+    >
       <div className="seodrawer__head">
-        <div className="seodrawer__title">SEO · GEO · AEO health</div>
-        <button className="seodrawer__close" onClick={onClose}>×</button>
+        <div className="seodrawer__title" id="seo-drawer-title">SEO · GEO · AEO health</div>
+        <button type="button" className="seodrawer__close" onClick={onClose} aria-label="Close">×</button>
       </div>
       <div className="seodrawer__grid">
         <div className="seocard">

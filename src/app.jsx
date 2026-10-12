@@ -13,6 +13,18 @@ const ROUTE_PATHS = {
   admin: '/admin',
 };
 
+// i18n key for each route's page name (title + route-change announcement)
+const ROUTE_LABEL_KEY = {
+  landing: 'brand',
+  lobby: 'lobby_title',
+  info: 'door_info',
+  facilities: 'door_facilities',
+  reviews: 'door_reviews',
+  booking: 'door_booking',
+  faq: 'door_faq',
+  admin: 'door_admin',
+};
+
 function pathToRoute(path) {
   const clean = path.replace(/\/$/, '') || '/';
   const map = {
@@ -127,6 +139,13 @@ function App() {
     document.documentElement.lang = lang === "ms" ? "ms-MY" : "en-MY";
   }, [lang]);
 
+  // Keep the tab title in sync with the current page (also a route-change cue)
+  useEffect(() => {
+    const brand = RN_T("brand", lang);
+    const page = RN_T(ROUTE_LABEL_KEY[route] || "brand", lang);
+    document.title = route === "landing" ? brand : `${brand} · ${page}`;
+  }, [route, lang]);
+
   // Seed initial history state so the first popstate has a state object
   useEffect(() => {
     window.history.replaceState({ route }, '', ROUTE_PATHS[route] ?? '/');
@@ -189,9 +208,14 @@ function App() {
       <StaffLoginModal open={staffOpen} onClose={() => setStaffOpen(false)} onAuth={onAuth} t={t} />
 
       {/* Door-transition overlay between pages */}
-      <div className={"transition" + (transitioning ? " is-on" : "")}>
+      <div className={"transition" + (transitioning ? " is-on" : "")} aria-hidden="true">
         <div className="transition__l" />
         <div className="transition__r" />
+      </div>
+
+      {/* Announce the new page to screen readers on route change */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {route === "landing" ? "" : t(ROUTE_LABEL_KEY[route] || "brand")}
       </div>
 
       <main className={"main" + (route === "landing" ? " main--landing" : route === "lobby" ? " main--lobby" : " main--page")}>

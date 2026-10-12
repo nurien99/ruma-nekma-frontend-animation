@@ -45,6 +45,7 @@ function LandingPage({ t, lang, doorVariant, motion, onEnter }) {
             motion={motion}
             disabled={ringing || opening}
             onClick={ring}
+            ariaLabel={ringing ? t("unlocking") : t("ring_bell")}
             peekColor="linear-gradient(180deg,#e8d8b8 0%,#d6bf95 60%,#b89b6c 100%)"
           />
           <button
@@ -52,7 +53,7 @@ function LandingPage({ t, lang, doorVariant, motion, onEnter }) {
             onClick={ring}
             disabled={ringing || opening}
           >
-            <span className="doorbell__ring">
+            <span className="doorbell__ring" aria-hidden="true">
               {[0, 1, 2].map((i) => (
                 <span key={i} style={{ animationDelay: `${i * 0.18}s` }} />
               ))}
