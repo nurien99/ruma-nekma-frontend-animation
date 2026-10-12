@@ -932,7 +932,13 @@ code { font-family: var(--font-mono); }
 .stars__on { color: var(--rn-brass); }
 .stars__off { color: var(--rn-line); }
 
-.rev__form { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 100px; }
+.rev__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  margin-bottom: 24px;
+}
 .rev__form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-family: var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--rn-text-soft); }
 .rev__form input, .rev__form textarea {
   border: 1px solid var(--rn-line);
