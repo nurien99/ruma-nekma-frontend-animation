@@ -52,8 +52,8 @@ function InfoPage({ t, lang }) {
               <span className="geocoords__pill">Geo-tagged</span>
             </div>
             <div className="map">
-              <div className="map__pin" />
-              <div className="map__grid" />
+              <div className="map__pin" aria-hidden="true" />
+              <div className="map__grid" aria-hidden="true" />
               <div className="map__label">Melaka, Malaysia</div>
             </div>
           </div>

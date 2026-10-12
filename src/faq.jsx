@@ -107,24 +107,29 @@ function FaqPage({ t, lang }) {
           {/* AI Concierge */}
           <div className="ai card">
             <div className="ai__head">
-              <span className="ai__dot" />
+              <span className="ai__dot" aria-hidden="true" />
               <div>
                 <div className="ai__kicker">{t("ai_kicker")}</div>
                 <div className="ai__sub">{lang === "ms" ? "Jawapan segera dari FAQ" : "Instant answers from the FAQ"}</div>
               </div>
               <span className="ai__aeo">AEO</span>
             </div>
-            <div className="ai__chat">
+            <div
+              className="ai__chat"
+              role="log"
+              aria-live="polite"
+              aria-label={lang === "ms" ? "Sembang AI" : "AI chat"}
+            >
               {chat.map((m, i) => (
                 <div key={i} className={"ai__msg ai__msg--" + m.role}>
                   {lang === "ms" ? m.ms : m.en}
                 </div>
               ))}
-              {busy && <div className="ai__msg ai__msg--ai ai__msg--typing">{t("ai_thinking")}<span>.</span><span>.</span><span>.</span></div>}
+              {busy && <div className="ai__msg ai__msg--ai ai__msg--typing">{t("ai_thinking")}<span aria-hidden="true">.</span><span aria-hidden="true">.</span><span aria-hidden="true">.</span></div>}
             </div>
             <div className="ai__sugs">
               {(lang === "ms" ? SUGGESTIONS_MS : SUGGESTIONS_EN).map((s) => (
-                <button key={s} onClick={() => ask(s)}>{s}</button>
+                <button key={s} type="button" onClick={() => ask(s)}>{s}</button>
               ))}
             </div>
             <form
@@ -135,6 +140,7 @@ function FaqPage({ t, lang }) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={t("ai_placeholder")}
+                aria-label={t("ai_placeholder")}
               />
               <button type="submit" disabled={busy}>{t("ai_send")} →</button>
             </form>
@@ -156,7 +162,7 @@ function FaqPage({ t, lang }) {
               >
                 <summary itemProp="name">
                   <span>{lang === "ms" ? f.q_ms : f.q_en}</span>
-                  <span className="faq__chev">{open === i ? "−" : "+"}</span>
+                  <span className="faq__chev" aria-hidden="true">{open === i ? "−" : "+"}</span>
                 </summary>
                 <div className="faq__a" itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
                   <p itemProp="text">{lang === "ms" ? f.a_ms : f.a_en}</p>

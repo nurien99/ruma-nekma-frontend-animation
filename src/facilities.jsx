@@ -140,7 +140,7 @@ function FacilitiesPage({ t, lang }) {
               <ul className="speclist">
                 {(lang === "ms" ? section.items_ms : section.items_en).map((it, i) => (
                   <li key={i}>
-                    <span className="speclist__dot" />
+                    <span className="speclist__dot" aria-hidden="true" />
                     <span>{it}</span>
                   </li>
                 ))}
