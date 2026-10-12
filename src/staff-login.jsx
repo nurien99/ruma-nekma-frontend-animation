@@ -1,6 +1,7 @@
 // Staff login: production auth via Laravel Sanctum.
 import React from 'react';
 import { API_BASE } from './config';
+import { useDialogA11y } from './a11y';
 
 const STAFF_KEY = "rn_staff_auth_v1";
 const ALLOWED_ROLES = new Set(["owner", "admin"]);
@@ -56,6 +57,7 @@ function StaffLoginModal({ open, onClose, onAuth, t }) {
   const [pass, setPass] = React.useState("");
   const [err, setErr] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  const dialogRef = useDialogA11y(open, onClose);
 
   React.useEffect(() => {
     if (open) {
@@ -117,7 +119,7 @@ function StaffLoginModal({ open, onClose, onAuth, t }) {
   if (!open) return null;
 
   return (
-    <div className="modal" role="dialog" aria-modal="true" aria-label={t("staff_login_title")}>
+    <div className="modal" ref={dialogRef} role="dialog" aria-modal="true" aria-label={t("staff_login_title")}>
       <div className="modal__scrim" onClick={onClose} />
       <div className="modal__card">
         <div className="modal__keypad">
@@ -157,7 +159,7 @@ function StaffLoginModal({ open, onClose, onAuth, t }) {
             />
           </label>
 
-          {err && <div className="staff-err">{err}</div>}
+          {err && <div className="staff-err" role="alert">{err}</div>}
 
           <button type="submit" className="btn btn--primary" disabled={busy}>
             {busy ? t("staff_signing_in") : t("staff_signin")}

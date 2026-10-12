@@ -84,7 +84,7 @@ function BookingActions({ booking, onDone, lang }) {
 
   return (
     <div className="adm__actions">
-      {err && <span className="adm__act-err">{err}</span>}
+      {err && <span className="adm__act-err" role="alert">{err}</span>}
       {status === "pending" && (
         <>
           <button disabled={busy} onClick={() => act(`/api/owner/bookings/${id}/confirm`)} className="btn btn--xs btn--ok">
@@ -138,7 +138,7 @@ function ReviewActions({ review, onDone, lang }) {
 
   return (
     <div className="adm__actions">
-      {err && <span className="adm__act-err">{err}</span>}
+      {err && <span className="adm__act-err" role="alert">{err}</span>}
       <button disabled={busy} onClick={() => act(`/api/owner/reviews/${id}/approve`)} className="btn btn--xs btn--ok">
         {lang === "ms" ? "Lulus" : "Approve"}
       </button>
@@ -149,8 +149,8 @@ function ReviewActions({ review, onDone, lang }) {
   );
 }
 
-function EmptyState({ children }) {
-  return <div className="card" style={{ padding: 24 }}>{children}</div>;
+function EmptyState({ children, role }) {
+  return <div className="card" style={{ padding: 24 }} role={role}>{children}</div>;
 }
 
 function AdminPage({ t, lang, staff, onSignOut }) {
@@ -231,7 +231,7 @@ function AdminPage({ t, lang, staff, onSignOut }) {
             <h2 className="display display--md">{t("adm_h")}</h2>
           </div>
           <div className="adm__staff">
-            <div className="adm__avatar">{initials}</div>
+            <div className="adm__avatar" aria-hidden="true">{initials}</div>
             <div>
               <div>{staff ? staff.name : "Ruma Nekma"}</div>
               <small>{roleLabel(staff?.role, lang)}</small>
@@ -243,7 +243,7 @@ function AdminPage({ t, lang, staff, onSignOut }) {
         </header>
 
         <div className="adm__tabs-row">
-          <nav className="adm__tabs">
+          <nav className="adm__tabs" aria-label={lang === "ms" ? "Bahagian papan pemuka" : "Dashboard sections"}>
             {[
               ["overview", t("adm_tab_overview")],
               ["bookings", t("adm_tab_bookings")],
@@ -251,18 +251,30 @@ function AdminPage({ t, lang, staff, onSignOut }) {
               ["reviews", t("adm_tab_reviews")],
               ["ops", t("adm_tab_ops")],
             ].map(([k, l]) => (
-              <button key={k} className={tab === k ? "is-on" : ""} onClick={() => setTab(k)}>
+              <button
+                key={k}
+                type="button"
+                className={tab === k ? "is-on" : ""}
+                aria-current={tab === k ? "true" : undefined}
+                onClick={() => setTab(k)}
+              >
                 {l}
               </button>
             ))}
           </nav>
-          <button type="button" className="adm__refresh" onClick={loadDashboard} title={lang === "ms" ? "Segar semula" : "Refresh"}>
+          <button
+            type="button"
+            className="adm__refresh"
+            onClick={loadDashboard}
+            title={lang === "ms" ? "Segar semula" : "Refresh"}
+            aria-label={lang === "ms" ? "Segar semula" : "Refresh"}
+          >
             ↻
           </button>
         </div>
 
-        {error && <div className="staff-err">{error}</div>}
-        {loading && <EmptyState>{lang === "ms" ? "Memuatkan data produksi..." : "Loading production data..."}</EmptyState>}
+        {error && <div className="staff-err" role="alert">{error}</div>}
+        {loading && <EmptyState role="status">{lang === "ms" ? "Memuatkan data produksi..." : "Loading production data..."}</EmptyState>}
 
         {!loading && tab === "overview" && (
           <div className="adm__grid">
@@ -312,15 +324,16 @@ function AdminPage({ t, lang, staff, onSignOut }) {
           bookings.length ? (
             <div className="card adm__table">
               <table>
+                <caption className="sr-only">{lang === "ms" ? "Senarai tempahan" : "Bookings list"}</caption>
                 <thead>
                   <tr>
-                    <th>Ref</th>
-                    <th>{lang === "ms" ? "Tetamu" : "Guest"}</th>
-                    <th>{lang === "ms" ? "Daftar masuk" : "Check-in"}</th>
-                    <th>{lang === "ms" ? "Daftar keluar" : "Check-out"}</th>
-                    <th>{lang === "ms" ? "Jumlah" : "Total"}</th>
-                    <th>Status</th>
-                    <th>{lang === "ms" ? "Tindakan" : "Actions"}</th>
+                    <th scope="col">Ref</th>
+                    <th scope="col">{lang === "ms" ? "Tetamu" : "Guest"}</th>
+                    <th scope="col">{lang === "ms" ? "Daftar masuk" : "Check-in"}</th>
+                    <th scope="col">{lang === "ms" ? "Daftar keluar" : "Check-out"}</th>
+                    <th scope="col">{lang === "ms" ? "Jumlah" : "Total"}</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">{lang === "ms" ? "Tindakan" : "Actions"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -344,18 +357,29 @@ function AdminPage({ t, lang, staff, onSignOut }) {
         {!loading && tab === "calendar" && (
           <div className="card">
             <div className="cal__legend">
-              <span><span className="dot dot--avail" />{t("book_legend_avail")}</span>
-              <span><span className="dot dot--direct" />{lang === "ms" ? "Tempahan" : "Booking"}</span>
-              <span><span className="dot dot--external" />External</span>
-              <span><span className="dot dot--blocked" />{lang === "ms" ? "Disekat" : "Blocked"}</span>
+              <span><span className="dot dot--avail" aria-hidden="true" />{t("book_legend_avail")}</span>
+              <span><span className="dot dot--direct" aria-hidden="true" />{lang === "ms" ? "Tempahan" : "Booking"}</span>
+              <span><span className="dot dot--external" aria-hidden="true" />External</span>
+              <span><span className="dot dot--blocked" aria-hidden="true" />{lang === "ms" ? "Disekat" : "Blocked"}</span>
             </div>
             <div className="adm__cal">
-              {currentMonthDays.map(({ day, event, eventType }) => (
-                <div key={day} className={"adm__caldate " + (eventType ? "adm__caldate--" + eventType : "")}>
-                  <span>{day}</span>
-                  {event && <em>{event.title}</em>}
-                </div>
-              ))}
+              {currentMonthDays.map(({ day, event, eventType }) => {
+                const statusText =
+                  eventType === "external" ? (lang === "ms" ? "tempahan luar" : "external booking") :
+                  eventType === "blocked" ? (lang === "ms" ? "disekat" : "blocked") :
+                  eventType === "direct" ? (lang === "ms" ? "tempahan" : "booking") :
+                  (lang === "ms" ? "tersedia" : "available");
+                return (
+                  <div
+                    key={day}
+                    className={"adm__caldate " + (eventType ? "adm__caldate--" + eventType : "")}
+                    aria-label={`${day}, ${statusText}${event?.title ? ": " + event.title : ""}`}
+                  >
+                    <span>{day}</span>
+                    {event && <em>{event.title}</em>}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
