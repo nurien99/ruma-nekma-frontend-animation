@@ -256,6 +256,8 @@ const PER_PAGE = 5;
 
 function ReviewsPage({ t, lang }) {
   const [reviews, setReviews] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [submitting, setSubmitting] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [form, setForm] = React.useState({ ref: "", email: "", stars: 5, text: "" });
   const [submitted, setSubmitted] = React.useState(false);
@@ -330,12 +332,14 @@ function ReviewsPage({ t, lang }) {
       });
 
       setReviews(merged);
-    }).catch(() => {});
+      setLoading(false);
+    }).catch(() => { setLoading(false); });
   }, []);
 
-  const avg = reviews.length
-    ? (reviews.reduce((s, r) => s + r.stars, 0) / reviews.length).toFixed(1)
-    : "0.0";
+  const avgNum = reviews.length
+    ? reviews.reduce((s, r) => s + r.stars, 0) / reviews.length
+    : 0;
+  const avg = loading ? "—" : avgNum.toFixed(1);
   const dist = [5, 4, 3, 2, 1].map((n) => ({
     n,
     pct: reviews.length ? (reviews.filter((r) => r.stars === n).length / reviews.length) * 100 : 0,
@@ -409,6 +413,7 @@ function ReviewsPage({ t, lang }) {
     if (!form.ref.trim() || !form.email.trim() || !form.text.trim()) return;
     setError("");
     setFileError("");
+    setSubmitting(true);
 
     try {
       const formData = new FormData();
@@ -444,6 +449,8 @@ function ReviewsPage({ t, lang }) {
       setTimeout(() => setSubmitted(false), 4000);
     } catch (err) {
       setError(err.message || (lang === "ms" ? "Ulasan gagal dihantar." : "Review could not be submitted."));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -459,7 +466,7 @@ function ReviewsPage({ t, lang }) {
         <div className="rev__top">
           <div className="rev__avg card">
             <div className="rev__bignum">{avg}</div>
-            <Stars n={Math.round(avg)} size={20} />
+            <Stars n={Math.round(avgNum)} size={20} />
             <div className="rev__count">
               {lang === "ms" ? RN_I18N.rev_count_ms(reviews.length) : RN_I18N.rev_count_en(reviews.length)}
             </div>
@@ -603,14 +610,23 @@ function ReviewsPage({ t, lang }) {
 
             {fileError && <div className="staff-err" role="alert">{fileError}</div>}
 
-            <button type="submit" className="btn btn--primary">{t("rev_submit")}</button>
+            <button type="submit" className="btn btn--primary" disabled={submitting} aria-busy={submitting}>
+              {submitting ? (lang === "ms" ? "Menghantar…" : "Submitting…") : t("rev_submit")}
+            </button>
             {error && <div className="staff-err" role="alert">{error}</div>}
             {submitted && <div className="rev__thanks" role="status">{t("rev_thanks")}</div>}
           </form>
 
           {/* Reviews list with pagination */}
           <div className="rev__list">
-            {reviews.length === 0 && (
+            {loading && (
+              <article className="rev" role="status">
+                <p className="rev__text">
+                  {lang === "ms" ? "Memuatkan ulasan…" : "Loading reviews…"}
+                </p>
+              </article>
+            )}
+            {!loading && reviews.length === 0 && (
               <article className="rev">
                 <p className="rev__text">
                   {lang === "ms"
